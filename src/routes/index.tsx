@@ -1,10 +1,11 @@
-import { Suspense, type VoidComponent } from "solid-js";
+import { Suspense, createEffect, type VoidComponent } from "solid-js";
 import { A } from "solid-start";
-import { trpc } from "../utils/trpc";
+import { client, trpc } from "../utils/trpc";
 import { signOut, signIn } from "@auth/solid-start/client";
-import { createServerData$ } from "solid-start/server";
-import { getSession } from "@auth/solid-start";
-import { authOpts } from "./api/auth/[...solidauth]";
+import { queryClient } from "../utils/trpc";
+// import { createServerData$ } from "solid-start/server";
+// import { getSession } from "@auth/solid-start";
+// import { authOpts } from "./api/auth/[...solidauth]";
 
 const Home: VoidComponent = () => {
   const hello = trpc.example.hello.useQuery(() => ({ name: "from tRPC" }));
@@ -53,26 +54,62 @@ const Home: VoidComponent = () => {
 export default Home;
 
 const AuthShowcase: VoidComponent = () => {
-  const sessionData = createSession();
+  // const sessionData = createSession();
+  const sessionData = trpc.session.getSession.useQuery();
+
+  createEffect(() => {
+    console.log("hi: ", sessionData.data);
+  });
+
+  // return (
+  //   <div class="flex flex-col items-center justify-center gap-4">
+  //     <p class="text-center text-2xl text-white">
+  //       {sessionData() && <span>Logged in as {sessionData()?.user?.name}</span>}
+  //     </p>
+  //     <button
+  //       class="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+  //       onClick={
+  //         sessionData() ? () => void signOut() : () => void signIn("github")
+  //       }
+  //     >
+  //       {sessionData() ? "Sign out" : "Sign in"}
+  //     </button>
+  //   </div>
+  // );
   return (
     <div class="flex flex-col items-center justify-center gap-4">
       <p class="text-center text-2xl text-white">
-        {sessionData() && <span>Logged in as {sessionData()?.user?.name}</span>}
+        {sessionData.data && (
+          <span>Logged in as {sessionData.data?.user?.name}</span>
+        )}
       </p>
       <button
         class="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
         onClick={
-          sessionData() ? () => void signOut() : () => void signIn("discord")
+          sessionData.data?.user?.id
+            ? () => {
+                signOut();
+                queryClient.invalidateQueries(() => ["session.getSession"]);
+              }
+            : () => signIn("github")
         }
       >
-        {sessionData() ? "Sign out" : "Sign in"}
+        {sessionData.data?.user?.id ? "Sign out" : "Sign in"}
+      </button>
+      <button
+        class="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+        onClick={() => {
+          signOut();
+        }}
+      >
+        Sign out
       </button>
     </div>
   );
 };
 
-const createSession = () => {
-  return createServerData$(async (_, event) => {
-    return await getSession(event.request, authOpts);
-  });
-};
+// const createSession = () => {
+//   return createServerData$(async (_, event) => {
+//     return await getSession(event.request, authOpts);
+//   });
+// };

@@ -1,5 +1,6 @@
 import { SolidAuth, type SolidAuthConfig } from "@auth/solid-start";
 import Discord from "@auth/core/providers/discord";
+import Github from '@auth/core/providers/github';
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { serverEnv } from "~/env/server";
 import { prisma } from "~/server/db/client";
@@ -17,9 +18,14 @@ export const authOpts: SolidAuthConfig = {
   adapter: PrismaAdapter(prisma) as Adapter,
   providers: [
     // @ts-expect-error Types Issue
-    Discord({
-      clientId: serverEnv.DISCORD_ID,
-      clientSecret: serverEnv.DISCORD_SECRET,
+    // Discord({
+    //   clientId: serverEnv.DISCORD_ID,
+    //   clientSecret: serverEnv.DISCORD_SECRET,
+    // }),
+    // @ts-expect-error Types Issue
+    Github({
+      clientId: serverEnv.GITHUB_CLIENT_ID,
+      clientSecret: serverEnv.GITHUB_CLIENT_SECRET,
     }),
   ],
   debug: false,
