@@ -7,7 +7,7 @@ import { serverEnv } from "~/env/server";
 const getBaseUrl = () => {
   if (typeof window !== "undefined") return "";
   //   return `http://localhost:${process.env.PORT ?? 3000}`;
-  return serverEnv.BASE_URL;
+  return process?.env?.VERCEL_URL || serverEnv.BASE_URL;
 };
 
 export const trpc = createTRPCSolid<IAppRouter>();
